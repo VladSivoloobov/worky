@@ -3,13 +3,21 @@ import container from '../../di/container';
 import { useEffect } from 'react';
 import { FlatList } from 'react-native';
 import Card from '../card/Card';
+import { useLocation } from '../../hooks/useLocation';
+import { Text } from 'react-native-gesture-handler';
 
 const JobList = observer(() => {
+  const { location, error } = useLocation();
   const jobStore = container.resolve('jobStore');
 
   useEffect(() => {
-    jobStore.fetchJobs();
+    if (!location) return;
+    jobStore.fetchJobs(location.latitude, location.longitude);
   }, []);
+
+  if (error) {
+    return <Text>Error: {error}</Text>;
+  }
 
   return (
     <FlatList
