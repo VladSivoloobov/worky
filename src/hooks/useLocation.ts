@@ -12,28 +12,52 @@ export function useLocation() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const getLocation = () => {
-      Geolocation.requestAuthorization('whenInUse');
+    let isCancelled = false;
 
-      Geolocation.getCurrentPosition(
-        position => {
-          const { latitude, longitude } = position.coords;
-          setLocation({ latitude, longitude });
+    const getLocation = async () => {
+      try {
+        const authStatus = await Geolocation.requestAuthorization('whenInUse');
+
+        if (isCancelled) return;
+
+        if (authStatus === 'granted') {
+          Geolocation.getCurrentPosition(
+            position => {
+              if (isCancelled) return;
+              const { latitude, longitude } = position.coords;
+              setLocation({ latitude, longitude });
+              setLoading(false);
+            },
+            error => {
+              if (isCancelled) return;
+              setError(error.message);
+              setLoading(false);
+            },
+            {
+              enableHighAccuracy: true,
+              timeout: 15000,
+              maximumAge: 10000,
+            },
+          );
+        } else {
+          if (!isCancelled) {
+            setError('Доступ к геолокации запрещён');
+            setLoading(false);
+          }
+        }
+      } catch (err: any) {
+        if (!isCancelled) {
+          setError(err.message || 'Неизвестная ошибка');
           setLoading(false);
-        },
-        error => {
-          setError(error.message);
-          setLoading(false);
-        },
-        {
-          enableHighAccuracy: true,
-          timeout: 30_000,
-          maximumAge: 15_000,
-        },
-      );
+        }
+      }
     };
 
     getLocation();
+
+    return () => {
+      isCancelled = true;
+    };
   }, []);
 
   return { location, loading, error };
