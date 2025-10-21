@@ -14,6 +14,9 @@ const JobList = observer(() => {
   return (
     <FlatList
       data={jobStore.jobs}
+      contentContainerStyle={{
+        gap: 12,
+      }}
       renderItem={item => {
         return <Card job={item.item} />;
       }}

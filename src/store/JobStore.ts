@@ -1,4 +1,4 @@
-import { makeAutoObservable } from 'mobx';
+import { flow, makeAutoObservable } from 'mobx';
 import { Job } from '../models/Job';
 import JobService from '../services/JobService';
 
@@ -12,13 +12,13 @@ class JobStore {
     makeAutoObservable(this);
   }
 
-  fetchJobs = async () => {
+  fetchJobs = flow(function* (this: JobStore) {
     this.loading = true;
 
-    this.jobs = await this.jobService.getJobList(45.039268, 38.987221);
+    this.jobs = yield this.jobService.getJobList(45.039268, 38.987221);
 
     this.loading = false;
-  };
+  });
 }
 
 export default JobStore;
